@@ -107,7 +107,7 @@ npm run dev
    - `Start Command`: `npm start`
 4. Add environment variables in Render:
    - `JWT_SECRET` = strong random string
-   - `CLIENT_ORIGIN` = `https://nglmessagemeweb.vercel.app`
+   - `CLIENT_ORIGIN` = `https://nglmessageme-website.vercel.app`
    - `ADMIN_EMAIL` = your admin email (optional if using CLI args to seed)
    - `ADMIN_PASSWORD` = your admin password (optional if using CLI args to seed)
    - `STORE_FILE_PATH` = `/var/data/submissions.json` (recommended when using a Render disk)
@@ -119,7 +119,7 @@ npm run dev
 npm run seed:admin
 ```
 
-Backend URL: `https://nglmessagemeweb.onrender.com`
+Backend URL: `https://nglwebsite-backend.onrender.com`
 
 ## Deploy to Vercel (Frontend)
 
@@ -130,14 +130,14 @@ Backend URL: `https://nglmessagemeweb.onrender.com`
    - `Build Command`: `npm run build`
    - `Output Directory`: `dist`
 3. Add environment variable:
-   - `VITE_API_BASE_URL` = `https://nglmessagemeweb.onrender.com`
+   - `VITE_API_BASE_URL` = `https://nglwebsite-backend.onrender.com`
 4. Deploy.
 
-Frontend URL: `https://nglmessagemeweb.vercel.app`
+Frontend URL: `https://nglmessageme-website.vercel.app`
 
 ## Production Checklist
 
-1. Visit `https://nglmessagemeweb.onrender.com/api/health` and confirm `{ ok: true }`.
+1. Visit `https://nglwebsite-backend.onrender.com/api/health` and confirm `{ ok: true }`.
 2. Create a profile/message from frontend and confirm it appears in admin dashboard.
 3. Delete a message in admin dashboard and confirm it is removed.
 

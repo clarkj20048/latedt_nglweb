@@ -75,7 +75,7 @@ In the same page where you configure your web service, scroll down to the **"Env
    - Example: `mongodb+srv://myuser:mypassword@cluster0.mongodb.net/ngl?retryWrites=true&w=majority`
 
 2. **CLIENT_ORIGIN**
-   - Value: `https://nglmessagemeweb.vercel.app`
+   - Value: `https://nglmessageme-website.vercel.app`
 
 3. **JWT_SECRET**
    - Value: The random string you generated in Step 2
@@ -100,7 +100,7 @@ In the same page where you configure your web service, scroll down to the **"Env
 
 Visit this URL in your browser:
 ```
-https://nglmessagemeweb.onrender.com/api/health
+https://nglwebsite-backend.onrender.com/api/health
 ```
 
 You should see a JSON response like:
@@ -140,7 +140,7 @@ After your backend is deployed, you need to create an admin account:
 - Verify your MongoDB Atlas network settings allow connections from Render (add 0.0.0.0/0 in IP Access List)
 
 ### CORS Errors
-- Make sure CLIENT_ORIGIN is set to exactly `https://nglmessagemeweb.vercel.app`
+- Make sure CLIENT_ORIGIN is set to exactly `https://nglmessageme-website.vercel.app`
 - No trailing slash!
 
 ### "Cannot GET /" Error
@@ -154,7 +154,6 @@ After your backend is deployed, you need to create an admin account:
 | Variable | Example Value |
 |----------|---------------|
 | MONGO_URI | `mongodb+srv://user:pass@cluster.mongodb.net/ngl?retryWrites=true&w=majority` |
-| CLIENT_ORIGIN | `https://nglmessagemeweb.vercel.app` |
+| CLIENT_ORIGIN | `https://nglmessageme-website.vercel.app` |
 | JWT_SECRET | (generated from node command) |
 | PORT | `5000` |
-

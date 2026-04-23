@@ -1,8 +1,8 @@
 # NGL Message Me - Complete Setup Guide
 
 This guide will help you set up your fully working NGL anonymous messaging website with:
-- **Backend**: Render (https://nglmessagemeweb.onrender.com)
-- **Frontend**: Vercel (https://nglmessagemeweb.vercel.app)
+- **Backend**: Render (https://nglwebsite-backend.onrender.com)
+- **Frontend**: Vercel (https://nglmessageme-website.vercel.app)
 - **Database**: MongoDB Atlas (for persistent data storage)
 
 ---
@@ -89,7 +89,7 @@ Scroll down to the **Environment Variables** section and add these:
 | Variable | Value |
 |----------|-------|
 | **MONGO_URI** | Your MongoDB connection string (from Step 1.3) |
-| **CLIENT_ORIGIN** | `https://nglmessagemeweb.vercel.app` |
+| **CLIENT_ORIGIN** | `https://nglmessageme-website.vercel.app` |
 | **JWT_SECRET** | Your generated JWT secret (from Step 2) |
 | **PORT** | `5000` |
 
@@ -99,7 +99,7 @@ Scroll down to the **Environment Variables** section and add these:
 3. You should see "Live" status when deployed
 
 ### 3.5 Verify Backend
-Visit: `https://nglmessagemeweb.onrender.com/api/health`
+Visit: `https://nglwebsite-backend.onrender.com/api/health`
 You should see: `{"ok":true,"timestamp":"..."}`
 
 ---
@@ -110,7 +110,7 @@ You should see: `{"ok":true,"timestamp":"..."}`
 In your backend folder, create a `.env` file:
 ```env
 MONGO_URI=your_mongodb_connection_string
-CLIENT_ORIGIN=https://nglmessagemeweb.vercel.app
+CLIENT_ORIGIN=https://nglmessageme-website.vercel.app
 JWT_SECRET=your_jwt_secret
 ADMIN_EMAIL=admin@ngl.com
 ADMIN_PASSWORD=admin123
@@ -158,13 +158,13 @@ Make sure your frontend code is also pushed to GitHub (can be same or separate r
 ## Step 6: Verify Your Website
 
 ### 6.1 Test the Website
-1. Go to: `https://nglmessagemeweb.vercel.app`
+1. Go to: `https://nglmessageme-website.vercel.app`
 2. Create a profile
 3. Send an anonymous message
 4. Check if it works!
 
 ### 6.2 Test Admin Dashboard
-1. Go to: `https://nglmessagemeweb.vercel.app/admin`
+1. Go to: `https://nglmessageme-website.vercel.app/admin`
 2. Login with:
    - **Email**: admin@ngl.com
    - **Password**: admin123
@@ -175,7 +175,7 @@ Make sure your frontend code is also pushed to GitHub (can be same or separate r
 ## Troubleshooting
 
 ### CORS Errors
-- Make sure `CLIENT_ORIGIN` in Render is exactly `https://nglmessagemeweb.vercel.app` (no trailing slash)
+- Make sure `CLIENT_ORIGIN` in Render is exactly `https://nglmessageme-website.vercel.app` (no trailing slash)
 
 ### MongoDB Connection Failed
 - Verify your MongoDB Atlas network settings (allow 0.0.0.0/0)
@@ -195,10 +195,10 @@ Make sure your frontend code is also pushed to GitHub (can be same or separate r
 
 | Service | URL |
 |---------|-----|
-| **Frontend** | https://nglmessagemeweb.vercel.app |
-| **Backend API** | https://nglmessagemeweb.onrender.com |
-| **Admin Panel** | https://nglmessagemeweb.vercel.app/admin |
-| **Health Check** | https://nglmessagemeweb.onrender.com/api/health |
+| **Frontend** | https://nglmessageme-website.vercel.app |
+| **Backend API** | https://nglwebsite-backend.onrender.com |
+| **Admin Panel** | https://nglmessageme-website.vercel.app/admin |
+| **Health Check** | https://nglwebsite-backend.onrender.com/api/health |
 
 ---
 
@@ -207,7 +207,7 @@ Make sure your frontend code is also pushed to GitHub (can be same or separate r
 ### Render (Backend)
 ```
 MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/dbname?retryWrites=true&w=majority
-CLIENT_ORIGIN=https://nglmessagemeweb.vercel.app
+CLIENT_ORIGIN=https://nglmessageme-website.vercel.app
 JWT_SECRET=your_64_character_jwt_secret
 PORT=5000
 ```
@@ -219,4 +219,3 @@ CLIENT_ORIGIN=http://localhost:5173
 JWT_SECRET=your_64_character_jwt_secret
 PORT=5000
 ```
-
