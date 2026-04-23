@@ -1,100 +1,65 @@
-﻿const express = require("express");
-const bcrypt = require("bcryptjs");
+const express = require("express");
 const jwt = require("jsonwebtoken");
 
+const Admin = require("../models/Admin");
+const Message = require("../models/Message");
 const { requireAdminAuth } = require("../middleware/authMiddleware");
-const { sanitizeText } = require("../utils/validation");
-const { getAdminSeedConfig } = require("../utils/adminConfig");
-const {
-  findAdminByEmail,
-  listSubmittedMessages,
-  deleteMessageById,
-  upsertAdmin,
-} = require("../utils/jsonStore");
+const { validateAdminLoginPayload } = require("../utils/validation");
 
 const router = express.Router();
 
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res, next) => {
   try {
-    const email = sanitizeText(req.body.email).toLowerCase();
-    const password = String(req.body.password || "").trim();
+    const { sanitized, errors, isValid } = validateAdminLoginPayload(req.body);
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required." });
+    if (!isValid) {
+      const error = new Error("Validation failed");
+      error.statusCode = 400;
+      error.details = errors;
+      throw error;
     }
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      return res.status(500).json({ message: "Server misconfigured: JWT secret missing." });
+    if (!process.env.JWT_SECRET) {
+      const error = new Error("JWT_SECRET environment variable is required.");
+      error.statusCode = 500;
+      throw error;
     }
 
-    let admin = await findAdminByEmail(email);
-    const seedConfig = getAdminSeedConfig();
+    const admin = await Admin.findOne({ username: sanitized.username });
 
-    if (!admin) {
-      const canSeed =
-        seedConfig.isValid && email === seedConfig.email && password === seedConfig.password;
-
-      if (!canSeed) {
-        return res.status(401).json({ message: "Invalid credentials." });
-      }
-
-      const passwordHash = await bcrypt.hash(seedConfig.password, 12);
-      admin = await upsertAdmin(seedConfig.email, passwordHash);
-    }
-
-    const isMatch = await bcrypt.compare(password, admin.passwordHash);
-    if (!isMatch) {
-      const canReset =
-        seedConfig.isValid && email === seedConfig.email && password === seedConfig.password;
-
-      if (!canReset) {
-        return res.status(401).json({ message: "Invalid credentials." });
-      }
-
-      const passwordHash = await bcrypt.hash(seedConfig.password, 12);
-      admin = await upsertAdmin(seedConfig.email, passwordHash);
+    if (!admin || !(await admin.comparePassword(sanitized.password))) {
+      const error = new Error("Invalid credentials.");
+      error.statusCode = 401;
+      throw error;
     }
 
     const token = jwt.sign(
       {
         adminId: admin._id,
-        email: admin.email,
+        username: admin.username,
       },
-      jwtSecret,
+      process.env.JWT_SECRET,
       { expiresIn: "8h" }
     );
 
-    return res.json({ token });
+    return res.json({
+      token,
+      admin: {
+        id: admin._id,
+        username: admin.username,
+      },
+    });
   } catch (error) {
-    console.error("Error in admin login:", error);
-    return res.status(500).json({ message: "Login failed." });
+    return next(error);
   }
 });
 
-router.get("/messages", requireAdminAuth, async (_req, res) => {
+router.get("/messages", requireAdminAuth, async (_req, res, next) => {
   try {
-    const messages = await listSubmittedMessages();
+    const messages = await Message.find().sort({ createdAt: -1 }).lean();
     return res.json({ messages });
   } catch (error) {
-    console.error("Error fetching messages:", error);
-    return res.status(500).json({ message: "Failed to load messages." });
-  }
-});
-
-router.delete("/messages/:id", requireAdminAuth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deleted = await deleteMessageById(id);
-
-    if (!deleted) {
-      return res.status(404).json({ message: "Message not found." });
-    }
-
-    return res.json({ message: "Message deleted successfully." });
-  } catch (error) {
-    console.error("Error deleting message:", error);
-    return res.status(500).json({ message: "Failed to delete message." });
+    return next(error);
   }
 });
 

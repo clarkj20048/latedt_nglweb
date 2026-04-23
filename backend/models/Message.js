@@ -2,9 +2,10 @@ const mongoose = require("mongoose");
 
 const messageSchema = new mongoose.Schema(
   {
-    profileId: {
+    fullName: {
       type: String,
       required: true,
+      trim: true,
     },
     anonymousName: {
       type: String,
@@ -16,13 +17,16 @@ const messageSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
-    timestamps: true,
+    versionKey: false,
   }
 );
 
-messageSchema.index({ profileId: 1, createdAt: -1 });
+messageSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Message", messageSchema);
-

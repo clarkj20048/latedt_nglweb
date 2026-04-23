@@ -1,44 +1,63 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 
+const connectDB = require("./config/db");
+const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 const messageRoutes = require("./routes/messageRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const ensureAdminSeed = require("./utils/ensureAdminSeed");
 
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+function getCorsOrigin() {
+  const origins = String(process.env.CLIENT_ORIGIN || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (origins.length === 0) {
+    return true;
+  }
+
+  return (origin, callback) => {
+    if (!origin || origins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS origin not allowed."));
+  };
+}
+
+app.set("trust proxy", 1);
+app.use(
+  cors({
+    origin: getCorsOrigin(),
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: "6mb" }));
+
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, timestamp: new Date().toISOString() });
+});
+
+app.use("/api/messages", messageRoutes);
+app.use("/api/profiles", profileRoutes);
+app.use("/api/admin", adminRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
+
 async function startServer() {
-  await ensureAdminSeed();
-
-  app.use(
-    cors({
-      origin: process.env.CLIENT_ORIGIN || "https://nglmessageme-website.vercel.app",
-      credentials: true,
-    })
-  );
-  app.use(express.json({ limit: "6mb" }));
-
-  app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, timestamp: new Date().toISOString() });
-  });
-
-  app.use("/api/messages", messageRoutes);
-  app.use("/api/profiles", profileRoutes);
-  app.use("/api/admin", adminRoutes);
-
-  app.use((err, _req, res, _next) => {
-    console.error(err);
-    res.status(500).json({ message: "Internal server error" });
-  });
+  await connectDB();
 
   app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running on port ${port}`);
   });
 }
 

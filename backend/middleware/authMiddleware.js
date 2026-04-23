@@ -1,20 +1,28 @@
-﻿const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 
-function requireAdminAuth(req, res, next) {
-  const authHeader = req.headers.authorization;
+function requireAdminAuth(req, _res, next) {
+  const authHeader = req.headers.authorization || "";
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!authHeader.startsWith("Bearer ")) {
+    const error = new Error("Unauthorized");
+    error.statusCode = 401;
+    return next(error);
   }
 
-  const token = authHeader.split(" ")[1];
+  if (!process.env.JWT_SECRET) {
+    const error = new Error("JWT_SECRET environment variable is required.");
+    error.statusCode = 500;
+    return next(error);
+  }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.admin = payload;
+    const token = authHeader.slice(7);
+    req.admin = jwt.verify(token, process.env.JWT_SECRET);
     return next();
   } catch (_error) {
-    return res.status(401).json({ message: "Unauthorized" });
+    const error = new Error("Unauthorized");
+    error.statusCode = 401;
+    return next(error);
   }
 }
 

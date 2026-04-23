@@ -1,40 +1,47 @@
-const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
-const validator = require("validator");
 
-const { upsertAdmin } = require("../utils/jsonStore");
+const connectDB = require("../config/db");
+const Admin = require("../models/Admin");
+const { sanitizeText } = require("../utils/validation");
 
 dotenv.config();
 
 function readSeedInput() {
-  const cliEmail = String(process.argv[2] || "").trim();
+  const cliUsername = String(process.argv[2] || "").trim();
   const cliPassword = String(process.argv[3] || "").trim();
 
-  const email =
-    cliEmail ||
-    String(process.env.ADMIN_USERNAME || process.env.ADMIN_EMAIL || "").trim();
-  const password = cliPassword || String(process.env.ADMIN_PASSWORD || "").trim();
-
-  return { email, password };
+  return {
+    username: cliUsername || String(process.env.ADMIN_USERNAME || "").trim(),
+    password: cliPassword || String(process.env.ADMIN_PASSWORD || "").trim(),
+  };
 }
 
 async function main() {
-  const { email, password } = readSeedInput();
+  const { username, password } = readSeedInput();
+  const normalizedUsername = sanitizeText(username).toLowerCase();
 
-  if (!email || !password) {
+  if (!normalizedUsername || !password) {
     throw new Error(
-      "Provide admin email/password via CLI or .env. Example: npm run seed:admin -- admin@example.com MyStrongPass123!"
+      "Provide username/password via CLI or .env. Example: npm run seed:admin -- admin MyStrongPass123!"
     );
   }
 
-  if (!validator.isEmail(email)) {
-    throw new Error("Admin email must be a valid email address.");
+  await connectDB();
+
+  const existingAdmin = await Admin.findOne({ username: normalizedUsername });
+
+  if (existingAdmin) {
+    existingAdmin.password = password;
+    await existingAdmin.save();
+  } else {
+    await Admin.create({
+      username: normalizedUsername,
+      password,
+    });
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
-  await upsertAdmin(email, passwordHash);
-
   console.log("Admin user created/updated successfully.");
+  process.exit(0);
 }
 
 main().catch((error) => {

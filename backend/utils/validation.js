@@ -7,28 +7,26 @@ function sanitizeText(value) {
     return "";
   }
 
-  // Escapes HTML and trims to reduce injection risk.
   return validator.escape(value).trim();
 }
 
 function hasAtLeastTwoWords(fullName) {
-  const words = fullName
+  return fullName
     .trim()
     .split(/\s+/)
-    .filter(Boolean);
-
-  return words.length >= 2;
+    .filter(Boolean).length >= 2;
 }
 
-function validateMessagePayload(payload) {
-  const profileId = sanitizeText(payload.profileId);
+function validateMessagePayload(payload = {}) {
+  const fullName = sanitizeText(payload.fullName);
   const anonymousName = sanitizeText(payload.anonymousName);
   const message = sanitizeText(payload.message);
-
   const errors = {};
 
-  if (!profileId) {
-    errors.profileId = "Profile id is required.";
+  if (!fullName) {
+    errors.fullName = "Full name is required.";
+  } else if (!hasAtLeastTwoWords(fullName)) {
+    errors.fullName = "Full name must include at least first name and last name.";
   }
 
   if (!anonymousName) {
@@ -41,7 +39,7 @@ function validateMessagePayload(payload) {
 
   return {
     sanitized: {
-      profileId,
+      fullName,
       anonymousName,
       message,
     },
@@ -50,14 +48,36 @@ function validateMessagePayload(payload) {
   };
 }
 
-function validateProfilePayload(payload) {
+function validateAdminLoginPayload(payload = {}) {
+  const username = sanitizeText(payload.username || payload.email).toLowerCase();
+  const password = String(payload.password || "").trim();
+  const errors = {};
+
+  if (!username) {
+    errors.username = "Username is required.";
+  }
+
+  if (!password) {
+    errors.password = "Password is required.";
+  }
+
+  return {
+    sanitized: {
+      username,
+      password,
+    },
+    errors,
+    isValid: Object.keys(errors).length === 0,
+  };
+}
+
+function validateProfilePayload(payload = {}) {
   const email = sanitizeText(payload.email).toLowerCase();
   const fullName = sanitizeText(payload.fullName);
   const profileImage = String(payload.profileImage || "").trim();
   const ageNumber = Number(payload.age);
   const imageMimeMatch = profileImage.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/);
   const imageMimeType = imageMimeMatch ? imageMimeMatch[1].toLowerCase() : "";
-
   const errors = {};
 
   if (!email) {
@@ -94,6 +114,7 @@ function validateProfilePayload(payload) {
 
 module.exports = {
   sanitizeText,
+  validateAdminLoginPayload,
   validateMessagePayload,
   validateProfilePayload,
 };

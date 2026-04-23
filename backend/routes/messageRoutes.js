@@ -1,37 +1,35 @@
 const express = require("express");
+
+const Message = require("../models/Message");
 const { validateMessagePayload } = require("../utils/validation");
-const { updateMessageByProfileId } = require("../utils/jsonStore");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     const { sanitized, errors, isValid } = validateMessagePayload(req.body);
 
     if (!isValid) {
-      return res.status(400).json({ message: "Validation failed", errors });
+      const error = new Error("Validation failed");
+      error.statusCode = 400;
+      error.details = errors;
+      throw error;
     }
 
-    const saved = await updateMessageByProfileId(sanitized.profileId, {
-      anonymousName: sanitized.anonymousName,
-      message: sanitized.message,
-    });
+    const savedMessage = await Message.create(sanitized);
 
-    if (!saved) {
-      return res.status(404).json({ message: "Profile not found." });
-    }
-    return res.status(200).json({
+    return res.status(201).json({
       message: "Message submitted successfully.",
       data: {
-        id: saved._id,
-        anonymousName: saved.anonymousName,
-        message: saved.message,
-        createdAt: saved.createdAt,
+        id: savedMessage._id,
+        fullName: savedMessage.fullName,
+        anonymousName: savedMessage.anonymousName,
+        message: savedMessage.message,
+        createdAt: savedMessage.createdAt,
       },
     });
   } catch (error) {
-    console.error("Error in messageRoutes:", error);
-    return res.status(500).json({ message: "Failed to save message" });
+    return next(error);
   }
 });
 

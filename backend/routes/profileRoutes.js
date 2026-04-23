@@ -1,19 +1,22 @@
 const express = require("express");
 
+const Profile = require("../models/Profile");
 const { validateProfilePayload } = require("../utils/validation");
-const { createProfile } = require("../utils/jsonStore");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     const { sanitized, errors, isValid } = validateProfilePayload(req.body);
 
     if (!isValid) {
-      return res.status(400).json({ message: "Validation failed", errors });
+      const error = new Error("Validation failed");
+      error.statusCode = 400;
+      error.details = errors;
+      throw error;
     }
 
-    const profile = await createProfile(sanitized);
+    const profile = await Profile.create(sanitized);
 
     return res.status(201).json({
       message: "Profile created successfully.",
@@ -25,8 +28,7 @@ router.post("/", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error in profileRoutes:", error);
-    return res.status(500).json({ message: "Failed to create profile." });
+    return next(error);
   }
 });
 
