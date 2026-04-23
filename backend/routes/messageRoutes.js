@@ -1,6 +1,7 @@
 const express = require("express");
 
 const Message = require("../models/Message");
+const Profile = require("../models/Profile");
 const { validateMessagePayload } = require("../utils/validation");
 
 const router = express.Router();
@@ -16,7 +17,27 @@ router.post("/", async (req, res, next) => {
       throw error;
     }
 
-    const savedMessage = await Message.create(sanitized);
+    let fullName = sanitized.fullName;
+    let profile = null;
+
+    if (req.body.profileId) {
+      profile = await Profile.findById(req.body.profileId).lean();
+
+      if (!profile) {
+        const error = new Error("Profile not found.");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      fullName = profile.fullName;
+    }
+
+    const savedMessage = await Message.create({
+      fullName,
+      anonymousName: sanitized.anonymousName,
+      message: sanitized.message,
+      profileId: profile ? profile._id : null,
+    });
 
     return res.status(201).json({
       message: "Message submitted successfully.",

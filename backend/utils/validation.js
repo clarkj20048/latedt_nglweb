@@ -19,14 +19,17 @@ function hasAtLeastTwoWords(fullName) {
 
 function validateMessagePayload(payload = {}) {
   const fullName = sanitizeText(payload.fullName);
+  const profileId = sanitizeText(payload.profileId);
   const anonymousName = sanitizeText(payload.anonymousName);
   const message = sanitizeText(payload.message);
   const errors = {};
 
-  if (!fullName) {
+  if (!profileId && !fullName) {
     errors.fullName = "Full name is required.";
   } else if (!hasAtLeastTwoWords(fullName)) {
-    errors.fullName = "Full name must include at least first name and last name.";
+    if (fullName) {
+      errors.fullName = "Full name must include at least first name and last name.";
+    }
   }
 
   if (!anonymousName) {
@@ -39,6 +42,7 @@ function validateMessagePayload(payload = {}) {
 
   return {
     sanitized: {
+      profileId,
       fullName,
       anonymousName,
       message,

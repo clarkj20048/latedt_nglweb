@@ -56,8 +56,38 @@ router.post("/login", async (req, res, next) => {
 
 router.get("/messages", requireAdminAuth, async (_req, res, next) => {
   try {
-    const messages = await Message.find().sort({ createdAt: -1 }).lean();
-    return res.json({ messages });
+    const messages = await Message.find()
+      .populate({ path: "profileId", select: "profileImage", options: { lean: true } })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({
+      messages: messages.map((message) => ({
+        _id: message._id,
+        fullName: message.fullName,
+        anonymousName: message.anonymousName,
+        message: message.message,
+        createdAt: message.createdAt,
+        profileId: message.profileId?._id || null,
+        profileImage: message.profileId?.profileImage || "",
+      })),
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.delete("/messages/:id", requireAdminAuth, async (req, res, next) => {
+  try {
+    const deletedMessage = await Message.findByIdAndDelete(req.params.id);
+
+    if (!deletedMessage) {
+      const error = new Error("Message not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    return res.json({ message: "Message deleted successfully." });
   } catch (error) {
     return next(error);
   }
