@@ -8,6 +8,7 @@ const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 const messageRoutes = require("./routes/messageRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const syncAdminCredentials = require("./utils/syncAdminCredentials");
 
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
@@ -55,6 +56,7 @@ app.use(errorHandler);
 
 async function startServer() {
   await connectDB();
+  await syncAdminCredentials();
 
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
